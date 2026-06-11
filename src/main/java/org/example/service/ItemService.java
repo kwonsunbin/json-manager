@@ -19,7 +19,7 @@ public class ItemService {
         this.repository = repository;
     }
 
-    public Item create(String name, String description) {
+    public synchronized Item create(String name, String description) {
         List<Item> items = repository.loadAll();
         String id = String.valueOf(generateNextId(items));
         Item item = new Item(id, name, description);
@@ -48,7 +48,7 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    public boolean update(String id, String field, String value) {
+    public synchronized boolean update(String id, String field, String value) {
         List<Item> items = repository.loadAll();
         for (Item item : items) {
             if (item.getId().equals(id)) {
@@ -65,7 +65,7 @@ public class ItemService {
         return false;
     }
 
-    public boolean delete(String id) {
+    public synchronized boolean delete(String id) {
         List<Item> items = repository.loadAll();
         boolean removed = items.removeIf(item -> item.getId().equals(id));
         if (removed) {
