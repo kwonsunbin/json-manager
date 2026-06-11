@@ -15,17 +15,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JsonRepository {
-    private static final String FILE_PATH = "data/items.json";
+    private final String filePath;
     private final Gson gson;
 
     public JsonRepository() {
+        this("data/items.json");
+    }
+
+    public JsonRepository(String filePath) {
+        this.filePath = filePath;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
         ensureFileExists();
     }
 
     private void ensureFileExists() {
         try {
-            Path path = Paths.get(FILE_PATH);
+            Path path = Paths.get(filePath);
             Files.createDirectories(path.getParent());
             if (!Files.exists(path)) {
                 Files.writeString(path, "[]");
@@ -37,7 +42,7 @@ public class JsonRepository {
 
     public List<Item> loadAll() {
         try (Reader reader = new InputStreamReader(
-                new FileInputStream(FILE_PATH), StandardCharsets.UTF_8)) {
+                new FileInputStream(filePath), StandardCharsets.UTF_8)) {
             Type listType = new TypeToken<List<Item>>() {}.getType();
             List<Item> items = gson.fromJson(reader, listType);
             return items != null ? items : new ArrayList<>();
@@ -48,7 +53,7 @@ public class JsonRepository {
 
     public void saveAll(List<Item> items) {
         try (Writer writer = new OutputStreamWriter(
-                new FileOutputStream(FILE_PATH), StandardCharsets.UTF_8)) {
+                new FileOutputStream(filePath), StandardCharsets.UTF_8)) {
             gson.toJson(items, writer);
         } catch (IOException e) {
             throw new RuntimeException("데이터 저장 실패: " + e.getMessage(), e);
