@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-## Project
+# Project
 
-JsonManager
+## JsonManager
 
 JSON 파일 기반 CRUD 콘솔 애플리케이션
 
@@ -12,17 +12,17 @@ JSON 파일 기반 CRUD 콘솔 애플리케이션
 * Gradle 9.3
 * Gson 2.11.0
 
----
-
-# Project Goal
+### Goal
 
 사용자가 콘솔 환경에서 데이터를 생성(Create), 조회(Read), 검색(Search), 수정(Update), 삭제(Delete)할 수 있는 JSON 기반 CRUD 애플리케이션을 개발한다.
 
-데이터는 `data/items.json` 파일에 저장한다.
+데이터는 `data/items.json` 에 저장한다.
 
 ---
 
-# Project Structure
+# Architecture
+
+## Project Structure
 
 ```text
 src/main/java/org/example/
@@ -37,9 +37,39 @@ src/main/java/org/example/
     └── ConsoleMenu.java
 ```
 
+## Layer Responsibilities
+
+### Model
+
+* 데이터만 보관
+* 비즈니스 로직 금지
+
+### Repository
+
+* JSON 파일 생성
+* JSON 파일 읽기
+* JSON 파일 쓰기
+
+비즈니스 로직 금지
+
+### Service
+
+* CRUD 처리
+* 검색 처리
+* 검증 처리
+
+파일 I/O 금지
+
+### UI
+
+* 메뉴 출력
+* 사용자 입력 처리
+
+비즈니스 로직 금지
+
 ---
 
-# Required Development Flow
+# Development Workflow
 
 모든 작업은 반드시 아래 순서를 따른다.
 
@@ -52,27 +82,29 @@ SPEC.md
     ↓
 PLAN.md
     ↓
-Implementation
+RED
+    ↓
+GREEN
+    ↓
+REFACTOR
+    ↓
+Regression Test
+    ↓
+PR
 ```
 
-## 1. PRD.md
+## PRD.md
 
-먼저 Product Requirement를 작성한다.
-
-포함 내용:
+포함 내용
 
 * 기능 요구사항
 * 비기능 요구사항
 * 사용자 시나리오
 * 예외 처리 정책
 
----
+## SPEC.md
 
-## 2. SPEC.md
-
-PRD를 기반으로 기술 설계를 작성한다.
-
-포함 내용:
+포함 내용
 
 * 클래스 설계
 * 데이터 구조
@@ -80,74 +112,47 @@ PRD를 기반으로 기술 설계를 작성한다.
 * 파일 구조
 * 예외 처리 방식
 
----
+## PLAN.md
 
-## 3. PLAN.md
-
-구현 계획을 작성한다.
-
-포함 내용:
+포함 내용
 
 * 작업 순서
 * 예상 변경 파일
 * 테스트 전략
 * 리스크 분석
 
----
-
-## 4. Implementation
-
-PLAN 승인 후 구현한다.
-
-구현 전에 코드를 작성하지 않는다.
+구현 전에 반드시 PLAN 작성 완료.
 
 ---
 
-# TDD Rules
+# TDD & Testing
 
 모든 기능 구현은 TDD를 따른다.
 
-반드시 아래 사이클을 유지한다.
-
-```text
-RED
-↓
-GREEN
-↓
-REFACTOR
-```
-
 ## RED
 
-먼저 실패하는 테스트 작성
-
-* 요구사항 검증
+* 실패하는 테스트 작성
 * 실패 확인
 
 ## GREEN
 
-최소한의 코드로 테스트 통과
-
-* 과도한 구현 금지
-* 테스트 통과 우선
+* 최소 구현으로 테스트 통과
 
 ## REFACTOR
 
-구조 개선
-
 * 중복 제거
 * 가독성 향상
-* 책임 분리
+* 구조 개선
 
-테스트는 항상 성공 상태를 유지해야 한다.
+## Test Priority
 
----
+1. Service
+2. Repository
+3. UI
 
-# Regression Test Rules
+## Regression Test
 
-기존 기능을 수정하는 경우 반드시 회귀 테스트를 작성한다.
-
-변경 전 확인:
+기존 기능 수정 시 반드시 검증
 
 * Create
 * Read
@@ -155,37 +160,29 @@ REFACTOR
 * Update
 * Delete
 
-기존 기능이 깨지지 않았음을 증명해야 한다.
-
 ---
 
 # Safety Rules
 
-기능 수정 시 아래를 반드시 검증한다.
-
 ## Data Safety
 
-절대로 기존 데이터를 손실시키지 않는다.
+* 기존 데이터 손실 금지
+* 삭제 시 사용자 확인 필요
+* 업데이트 시 ID 존재 여부 검증
 
-삭제 시:
+## JSON Safety
 
-* 사용자 확인 필요
-* 즉시 삭제 금지
+저장 전 검증
 
-업데이트 시:
+* JSON 파싱 가능
+* ID 존재
+* name != null
+* createdAt 유지
+* updatedAt 갱신
 
-* 대상 ID 존재 여부 확인
+## Protected Files
 
-저장 시:
-
-* 기존 데이터 유지
-* 전체 파일 무결성 유지
-
----
-
-## File Safety
-
-절대로 아래 파일을 임의 삭제하지 않는다.
+절대 삭제 금지
 
 ```text
 data/items.json
@@ -195,99 +192,86 @@ settings.gradle
 
 ---
 
-## JSON Safety
+# Git & Worktree Workflow
 
-JSON 저장 전 반드시 검증한다.
+이 프로젝트는 Worktree First 전략을 사용한다.
 
-검증 항목:
+## Rules
 
-* JSON 파싱 가능
-* ID 존재
-* name null 아님
-* createdAt 유지
-* updatedAt 갱신
+* main 브랜치 직접 개발 금지
+* main 브랜치 직접 commit 금지
+* main 브랜치 직접 push 금지
+* 모든 변경은 PR로 반영
+* 하나의 Worktree = 하나의 기능
+* 하나의 Worktree = 하나의 PR
 
----
+## Start
 
-# Architecture Rules
+```bash
+git checkout main
+git pull origin main
 
-## Model
+git branch feature/<feature-name>
 
-Item은 데이터만 가진다.
+git worktree add \
+  ../JsonManager-<feature-name> \
+  feature/<feature-name>
+```
 
-비즈니스 로직 금지.
+## Finish
 
----
+```bash
+git push origin feature/<feature-name>
 
-## Repository
+gh pr create
+```
 
-JsonRepository 책임:
+Merge 후
 
-* 파일 생성
-* 파일 읽기
-* 파일 쓰기
+```bash
+git worktree remove <worktree-path>
 
-비즈니스 로직 금지.
+git branch -d feature/<feature-name>
+```
 
----
+## Claude Rule
 
-## Service
+작업 시작 시 확인
 
-ItemService 책임:
+```bash
+git branch --show-current
+git worktree list
+```
 
-* CRUD 처리
-* 검색 처리
-* 검증 처리
-
-파일 I/O 금지.
-
----
-
-## UI
-
-ConsoleMenu 책임:
-
-* 입력 처리
-* 메뉴 출력
-
-비즈니스 로직 금지.
+현재 브랜치가 main이면 구현 시작 금지.
 
 ---
 
 # Coding Rules
-
-## General
 
 * 단일 책임 원칙 준수
 * 의미 있는 이름 사용
 * 매직 넘버 금지
 * 중복 코드 금지
 
----
-
-## Methods
-
-한 메서드는 하나의 책임만 가진다.
+## Method Rule
 
 권장:
 
-```java
-<= 30 lines
+```text
+1 Method = 1 Responsibility
+<= 30 Lines
 ```
 
----
+## Exception Rule
 
-## Exception Handling
-
-예외를 무시하지 않는다.
-
-금지:
+금지
 
 ```java
 catch(Exception e){}
 ```
 
-허용:
+허용
 
 ```java
 catch(IOException e){
@@ -297,83 +281,176 @@ catch(IOException e){
 
 ---
 
-# Testing Rules
-
-신규 기능 추가 시 반드시 테스트 추가.
-
-테스트 우선순위:
-
-1. Service
-2. Repository
-3. UI
-
----
-
 # Commit Rules
 
-커밋 메시지 형식:
+Commit 메시지는 Conventional Commits 규칙을 따른다.
+
+형식:
 
 ```text
-feat: add item search
-fix: prevent duplicate id
+<type>: <summary>
+```
+
+예시:
+
+```text
+feat: add item search feature
+fix: prevent duplicate item id
 refactor: simplify repository logic
+test: add item service tests
+docs: update README
+```
+
+## Allowed Types
+
+### feat
+
+새로운 기능 추가
+
+```text
+feat: add keyword search
+```
+
+### fix
+
+버그 수정
+
+```text
+fix: handle missing json file
+```
+
+### refactor
+
+동작 변경 없이 코드 구조 개선
+
+```text
+refactor: extract validation logic
+```
+
+### test
+
+테스트 추가 또는 수정
+
+```text
 test: add update service tests
 ```
+
+### docs
+
+문서 수정
+
+```text
+docs: update CLAUDE workflow
+```
+
+### chore
+
+빌드, 설정, 의존성 변경
+
+```text
+chore: upgrade gson to 2.11.0
+```
+
+### style
+
+코드 포맷팅, 공백, import 정리
+
+```text
+style: format repository classes
+```
+
+### perf
+
+성능 개선
+
+```text
+perf: optimize item search
+```
+
+## Rules
+
+* 커밋은 하나의 논리적 변경만 포함한다.
+* 여러 기능을 하나의 커밋으로 묶지 않는다.
+* 의미 없는 메시지 금지.
+
+금지 예시:
+
+```text
+update
+fix
+test
+wip
+asdf
+```
+
+권장:
+
+```text
+feat: add item update command
+fix: validate empty item name
+refactor: move json parsing to repository
+```
+
 
 ---
 
 # Pull Request Rules
 
-작업 완료 후:
+PR 생성 전 확인
 
-1. 테스트 실행
-2. 변경사항 요약 작성
-3. 커밋 생성
-4. 원격 브랜치 푸시
-5. PR 생성 (.github/PULL_REQUEST_TEMPLATE.md)
+* [ ] PRD 최신화
+* [ ] SPEC 최신화
+* [ ] PLAN 최신화
+* [ ] 모든 테스트 통과
+* [ ] Regression Test 완료
+
+PR 템플릿 사용
+
+```text
+.github/PULL_REQUEST_TEMPLATE.md
+```
 
 ---
 
-# Instructions For Claude
+# Definition of Done
 
-작업 시 반드시 아래 형식으로 진행한다.
+작업 완료 조건
 
-## Step 1
+* [ ] PRD 작성
+* [ ] SPEC 작성
+* [ ] PLAN 작성
+* [ ] RED 테스트 작성
+* [ ] GREEN 구현
+* [ ] REFACTOR 완료
+* [ ] Regression Test 통과
+* [ ] Commit 완료
+* [ ] Push 완료
+* [ ] Pull Request 생성
 
-요구사항 분석
+```
+```
 
-## Step 2
+## Subagents
 
-PRD 작성
+### implement-agent
 
-## Step 3
+기능 구현 담당
 
-SPEC 작성
+- GREEN 구현
+- REFACTOR
+- Architecture 준수
 
-## Step 4
+### test-agent
 
-PLAN 작성
+테스트 담당
 
-## Step 5
+- RED 테스트 작성
+- Regression Test 작성
+- Edge Case 검증
 
-RED 테스트 작성
+규칙:
 
-## Step 6
-
-GREEN 구현
-
-## Step 7
-
-REFACTOR
-
-## Step 8
-
-Regression Test 수행
-
-## Step 9
-
-변경사항 요약
-
-코드만 바로 작성하지 않는다.
-
-항상 설계 → 계획 → 테스트 → 구현 순서를 따른다.
+1. test-agent → RED 작성
+2. implement-agent → GREEN 구현
+3. implement-agent → REFACTOR
+4. test-agent → Regression Test 검증
